@@ -41,18 +41,7 @@ detection engineering function owns:
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    A1[Sysmon / EDR] --> B[Splunk Indexers]
-    A2[AD / Azure AD] --> B
-    A3[Firewall / Proxy] --> B
-    B --> C[23 SPL Detections]
-    C --> D[Notable Events Index]
-    D --> E[Dashboards]
-    D --> F[Python Automation]
-    E --> G[SOC Analyst Response]
-    F --> G
-```
+![Architecture diagram](./architecture/screenshots/architecture_diagram.png)
 
 Full breakdown and design rationale in [`architecture/architecture.md`](./architecture/architecture.md).
 
@@ -74,7 +63,20 @@ TargetImage="*\lsass.exe"
 Every detection includes the reasoning behind the logic, known false-positive sources, and tuning guidance —
 not just the query.
 
+## Detection Running in Splunk
+
+![Splunk search running the LSASS credential-dumping detection](./architecture/screenshots/splunk_detection_search.png)
+
+*Note: built without a live licensed Splunk instance — this is a UI mockup matching Splunk's Search &
+Reporting layout, running the real query from `detections/credential_access/T1003_001_lsass_memory_access.spl`
+against sample data. See [`architecture/screenshots/README.md`](./architecture/screenshots/README.md) for
+full provenance notes on every image in this repo.*
+
 ## Python Automation in Action
+
+![Terminal output of the incident report generator and IOC enrichment scripts](./architecture/screenshots/automation_scripts_demo.png)
+
+*This screenshot is not a mockup — it's the actual output of the commands below.*
 
 ```bash
 # Enrich IOCs pulled from a detection hit against AbuseIPDB / VirusTotal / OTX
@@ -103,10 +105,15 @@ heavyweight dependencies), and fail gracefully — a single dead API or malforme
 
 ## Dashboards
 
-- **Executive Security Posture** — critical alert volume, MTTR, MITRE coverage gauge, 30-day severity trend.
-  For weekly leadership review.
-- **SOC Analyst Triage** — live open-alert queue, workload distribution, newly-appearing hosts, and a
-  detection health monitor to catch noisy or silently-failing detections before they erode analyst trust.
+**Executive Security Posture** — critical alert volume, MTTR, MITRE coverage gauge, 30-day severity trend.
+For weekly leadership review.
+
+![Executive security posture dashboard](./architecture/screenshots/executive_security_posture_dashboard.png)
+
+**SOC Analyst Triage** — live open-alert queue, workload distribution, newly-appearing hosts, and a
+detection health monitor to catch noisy or silently-failing detections before they erode analyst trust.
+
+![SOC analyst tactical triage dashboard](./architecture/screenshots/soc_analyst_triage_dashboard.png)
 
 Import the `.json` files in `/dashboards` via **Splunk → Dashboards → Create New Dashboard → Dashboard Studio
 → Import JSON**. Both reference the lookup in `docs/detection_mitre_lookup.csv` — see
