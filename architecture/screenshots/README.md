@@ -13,9 +13,9 @@ portfolio repo:
 - **`executive_security_posture_dashboard.png`** and **`soc_analyst_triage_dashboard.png`** — mockups
   rendered from the actual panel/query structure defined in `dashboards/*.json`, styled to match Splunk
   Dashboard Studio's dark theme. Sample data is illustrative.
-- **`automation_scripts_demo.png`** — this one is **not** a mockup. It's a captured terminal session actually
-  running `scripts/incident_report_generator.py` and `scripts/ioc_enrichment.py` against sample data, output
-  reproduced verbatim.
+- **`automation_scripts_demo.png`** — this one is **not** a mockup. It's a captured terminal session (Windows
+  PowerShell) actually running `scripts/incident_report_generator.py` and `scripts/ioc_enrichment.py` against
+  sample data, output reproduced verbatim.
 
 ## Files
 
