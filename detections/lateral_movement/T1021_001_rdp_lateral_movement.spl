@@ -1,0 +1,25 @@
+```
+# ============================================================================
+# Detection: RDP Login from Unusual Source Following Reconnaissance
+# Detection ID: DE-LM-002
+# MITRE ATT&CK: T1021.001 - Remote Services: Remote Desktop Protocol
+# Data Source: Windows Security 4624 (LogonType=10)
+# Severity: Medium
+# ============================================================================
+
+index=endpoint sourcetype="WinEventLog:Security" EventCode=4624 LogonType=10
+| stats count min(_time) as first_seen values(TargetUserName) as accounts by ComputerName, IpAddress
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+| lookup known_admin_workstations_lookup src_ip as IpAddress OUTPUT is_known_admin_ws
+| where isnull(is_known_admin_ws)
+| sort -count
+```
+
+## Detection Logic
+RDP (LogonType 10) sessions originating from a source IP not on the known-admin-workstation allowlist are flagged for review; attackers pivot via RDP after obtaining credentials through T1110/T1003 detections earlier in the kill chain.
+
+## False Positive Considerations
+New/unregistered admin workstations or legitimate jump-box rotations — keep the admin workstation lookup table current via a change-managed process.
+
+## Tuning Notes
+Correlate the source IP against recent DE-CA-003 (password spray) or DE-DI-001/002 (discovery) hits on the same account/host for a fused, higher-confidence lateral movement alert.

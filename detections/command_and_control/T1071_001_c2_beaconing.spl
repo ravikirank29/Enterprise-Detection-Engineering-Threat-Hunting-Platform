@@ -1,0 +1,28 @@
+```
+# ============================================================================
+# Detection: Periodic Beaconing Pattern to External Host
+# Detection ID: DE-C2-001
+# MITRE ATT&CK: T1071.001 - Application Layer Protocol: Web Protocols / T1132 - Data Encoding
+# Data Source: Proxy/firewall logs (sourcetype=proxy)
+# Severity: High
+# ============================================================================
+
+index=network sourcetype=proxy
+| bucket _time span=1h
+| stats count values(uri_path) as paths by src_ip, dest, _time
+| streamstats current=f window=2 last(_time) as prev_time by src_ip, dest
+| eventstats stdev(count) as stdev_count avg(count) as avg_count by src_ip, dest
+| eval coefficient_of_variation=round(stdev_count/avg_count,3)
+| where coefficient_of_variation<0.15 AND avg_count>=10
+| dedup src_ip, dest
+| table src_ip, dest, avg_count, coefficient_of_variation, paths
+```
+
+## Detection Logic
+C2 frameworks (Cobalt Strike, Sliver, custom implants) beacon at regular intervals with jitter. Low coefficient-of-variation in hourly connection counts to the same destination over time is a strong statistical signature of automated beaconing versus organic human browsing traffic.
+
+## False Positive Considerations
+SaaS health-check/heartbeat integrations (monitoring agents, license checks) beacon similarly — maintain an allowlist of known SaaS telemetry endpoints; also tune window length to reduce noise from short observation periods.
+
+## Tuning Notes
+Requires at least 72 hours of proxy log retention in the search window to compute a statistically meaningful coefficient of variation; this is a hunting-oriented search best run daily/weekly rather than real-time.

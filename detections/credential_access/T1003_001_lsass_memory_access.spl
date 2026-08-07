@@ -1,0 +1,41 @@
+```
+# ============================================================================
+# Detection: Suspicious LSASS Process Access (Credential Dumping)
+# Detection ID: DE-CA-001
+# MITRE ATT&CK: T1003.001 - OS Credential Dumping: LSASS Memory
+# Data Source: Sysmon Event ID 10 (ProcessAccess)
+# Severity: Critical
+# ============================================================================
+
+index=endpoint sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=10
+TargetImage="*\\lsass.exe"
+| eval GrantedAccessDecimal=tonumber(GrantedAccess,16)
+| where (GrantedAccessDecimal & 0x1010) = 0x1010 OR (GrantedAccessDecimal & 0x1438) = 0x1438
+| search NOT (SourceImage IN ("*\\MsMpEng.exe", "*\\ProcessHacker.exe", "*\\Taskmgr.exe", "*\\WmiPrvSE.exe", "*\\svchost.exe"))
+| stats count min(_time) as first_seen max(_time) as last_seen values(GrantedAccess) as access_rights
+    by ComputerName, SourceImage, SourceProcessId, TargetProcessId, User
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S"), last_seen=strftime(last_seen,"%Y-%m-%d %H:%M:%S")
+| lookup process_reputation_lookup process_path as SourceImage OUTPUT is_known_good
+| where isnull(is_known_good)
+| table first_seen, last_seen, ComputerName, User, SourceImage, SourceProcessId, TargetProcessId, access_rights, count
+| sort -count
+```
+
+## Detection Logic
+Flags processes requesting high-privilege access rights (PROCESS_VM_READ | PROCESS_QUERY_INFORMATION,
+or PROCESS_ALL_ACCESS-equivalent masks) to lsass.exe — the classic signature of Mimikatz, ProcDump-based
+LSASS dumping, or comsvcs.dll MiniDump abuse. Excludes common legitimate AV/EDR/admin tooling by image path
+(tune the exclusion list per environment) and cross-references a maintained lookup of known-good binaries.
+
+## False Positive Considerations
+- EDR/AV agents legitimately touch LSASS with similar access masks — must be excluded by verified hash, not
+  just path (path spoofing is trivial).
+- Backup/credential-provider software (rare) may trigger; validate against a change-managed allowlist.
+
+## Response Playbook Reference
+See `/playbooks/PB-002-credential-dumping-response.md`
+
+## Tuning Notes
+- Baseline `SourceImage` values for 2 weeks before enabling alerting in blocking/paging mode.
+- Consider adding `signed=false` filter using Sysmon EventCode=1 correlation on SourceProcessId to prioritize
+  unsigned binaries.

@@ -1,0 +1,25 @@
+```
+# ============================================================================
+# Detection: Lateral Movement via Admin Shares (PsExec-style)
+# Detection ID: DE-LM-001
+# MITRE ATT&CK: T1021.002 - Remote Services: SMB/Windows Admin Shares
+# Data Source: Windows Security 5140/5145, Sysmon 1
+# Severity: High
+# ============================================================================
+
+index=endpoint sourcetype="WinEventLog:Security" EventCode=5140
+ShareName IN ("\\\\*\\ADMIN$","\\\\*\\C$")
+| stats count min(_time) as first_seen values(ShareName) as shares by ComputerName, SubjectUserName, IpAddress
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+| where count>=3
+| sort -count
+```
+
+## Detection Logic
+Repeated connections to ADMIN$/C$ hidden administrative shares from a single account/source in a short window is the classic signature of PsExec, PAExec, or similar remote-execution tooling used for lateral movement — legitimate one-off admin access rarely repeats 3+ times in quick succession.
+
+## False Positive Considerations
+Backup agents and SCCM/patch deployment tools use admin shares extensively and legitimately — allowlist their service accounts, this is essential to avoid alert fatigue.
+
+## Tuning Notes
+Correlate with Security 7045 (new service installed) on the destination host within the same time window for high-confidence PsExec detection.

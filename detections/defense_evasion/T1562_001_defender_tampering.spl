@@ -1,0 +1,29 @@
+```
+# ============================================================================
+# Detection: Windows Defender / EDR Disabled or Tampered
+# Detection ID: DE-DE-002
+# MITRE ATT&CK: T1562.001 - Impair Defenses: Disable or Modify Tools
+# Data Source: Sysmon 13, WinEventLog:Microsoft-Windows-Windows Defender/Operational 5001/5010/5012
+# Severity: Critical
+# ============================================================================
+
+index=endpoint (sourcetype="WinEventLog:Microsoft-Windows-Windows Defender/Operational" EventCode IN (5001,5010,5012,5001))
+    OR (sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=13
+        TargetObject IN ("*\\Windows Defender\\DisableAntiSpyware*","*\\Windows Defender\\Real-Time Protection\\Disable*"))
+| eval event_desc=case(
+    EventCode=5001,"Real-time protection disabled",
+    EventCode=5010,"Scanning for malware disabled",
+    EventCode=5012,"Tamper protection disabled",
+    true(),"Registry-based Defender tampering")
+| stats count min(_time) as first_seen values(event_desc) as actions by ComputerName, User
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+```
+
+## Detection Logic
+Direct telemetry from Defender's own operational log plus registry-based tampering detection catches both GUI/PowerShell-based disabling (Set-MpPreference) and direct registry edits used to blind endpoint defenses ahead of payload delivery.
+
+## False Positive Considerations
+Legitimate AV migration projects (e.g., cutover to third-party EDR) will trigger this in bulk during a planned window — coordinate a suppression window with the security team's change calendar.
+
+## Tuning Notes
+Alert should fire regardless of time-of-day; combine with T1003/T1486 detections in a correlation search since defense tampering commonly precedes credential theft or ransomware deployment.

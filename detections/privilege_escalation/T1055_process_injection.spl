@@ -1,0 +1,25 @@
+```
+# ============================================================================
+# Detection: Cross-Process Memory Write Indicative of Process Injection
+# Detection ID: DE-PR-001
+# MITRE ATT&CK: T1055 - Process Injection
+# Data Source: Sysmon EventCode=8 (CreateRemoteThread), EventCode=10
+# Severity: Critical
+# ============================================================================
+
+index=endpoint sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=8
+| search NOT (SourceImage=TargetImage)
+| search NOT SourceImage IN ("*\\MsMpEng.exe","*\\SenseIR.exe","*\\CSFalconService.exe")
+| stats count min(_time) as first_seen values(TargetImage) as targets by ComputerName, SourceImage, SourceProcessId, StartFunction
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+| sort -count
+```
+
+## Detection Logic
+CreateRemoteThread events where the source and target images differ indicate one process is writing execution context into another's address space — the core mechanism behind DLL injection, process hollowing, and reflective loading used for privilege escalation and defense evasion.
+
+## False Positive Considerations
+EDR/AV self-protection and some legitimate hooking software (accessibility tools, some game anti-cheat) trigger this. Exclude known-good source images by verified hash.
+
+## Tuning Notes
+Pair with Sysmon EventCode=25 (ProcessTampering) if using Sysmon 13+ for process-hollowing-specific coverage.

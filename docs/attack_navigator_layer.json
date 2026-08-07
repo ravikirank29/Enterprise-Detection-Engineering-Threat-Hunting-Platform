@@ -1,0 +1,52 @@
+{
+  "name": "Detection Engineering Platform - Coverage Heatmap",
+  "versions": { "attack": "15", "navigator": "5.1.0", "layer": "4.5" },
+  "domain": "enterprise-attack",
+  "description": "Detection coverage heatmap generated from the Enterprise Detection Engineering & Threat Hunting Platform. Import this file at https://mitre-attack.github.io/attack-navigator/ to visualize.",
+  "filters": { "platforms": ["Windows", "Azure AD", "Office 365"] },
+  "sorting": 0,
+  "layout": { "layout": "side", "showID": true, "showName": true },
+  "hideDisabled": false,
+  "techniques": [
+    { "techniqueID": "T1566.001", "comment": "DE-IA-001", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1204.002", "comment": "DE-IA-001", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1190", "comment": "DE-IA-002", "score": 2, "color": "#ff6666" },
+    { "techniqueID": "T1078", "comment": "DE-IA-003", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1059.001", "comment": "DE-EX-001", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1047", "comment": "DE-EX-002", "score": 1, "color": "#ffd966" },
+    { "techniqueID": "T1547.001", "comment": "DE-PE-001", "score": 1, "color": "#ffd966" },
+    { "techniqueID": "T1053.005", "comment": "DE-PE-002", "score": 1, "color": "#ffd966" },
+    { "techniqueID": "T1055", "comment": "DE-PR-001", "score": 2, "color": "#ff6666" },
+    { "techniqueID": "T1548.002", "comment": "DE-PR-002", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1070.001", "comment": "DE-DE-001", "score": 2, "color": "#ff6666" },
+    { "techniqueID": "T1562.001", "comment": "DE-DE-002", "score": 2, "color": "#ff6666" },
+    { "techniqueID": "T1003.001", "comment": "DE-CA-001", "score": 2, "color": "#ff6666" },
+    { "techniqueID": "T1552.001", "comment": "DE-CA-002", "score": 1, "color": "#ffd966" },
+    { "techniqueID": "T1110.003", "comment": "DE-CA-003", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1087", "comment": "DE-DI-001", "score": 1, "color": "#c4e4b0" },
+    { "techniqueID": "T1069", "comment": "DE-DI-001", "score": 1, "color": "#c4e4b0" },
+    { "techniqueID": "T1018", "comment": "DE-DI-002", "score": 1, "color": "#c4e4b0" },
+    { "techniqueID": "T1046", "comment": "DE-DI-002", "score": 1, "color": "#c4e4b0" },
+    { "techniqueID": "T1021.002", "comment": "DE-LM-001", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1021.001", "comment": "DE-LM-002", "score": 1, "color": "#ffd966" },
+    { "techniqueID": "T1560.001", "comment": "DE-CO-001", "score": 1, "color": "#ffd966" },
+    { "techniqueID": "T1114.003", "comment": "DE-CO-002", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1048.003", "comment": "DE-EF-001", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1071.001", "comment": "DE-C2-001", "score": 1, "color": "#66b1ff" },
+    { "techniqueID": "T1486", "comment": "DE-IM-001", "score": 2, "color": "#ff6666" }
+  ],
+  "gradient": {
+    "colors": ["#c4e4b0", "#ffd966", "#66b1ff", "#ff6666"],
+    "minValue": 0,
+    "maxValue": 2
+  },
+  "legendItems": [
+    { "label": "Low severity coverage", "color": "#c4e4b0" },
+    { "label": "Medium severity coverage", "color": "#ffd966" },
+    { "label": "High severity coverage", "color": "#66b1ff" },
+    { "label": "Critical severity coverage", "color": "#ff6666" }
+  ],
+  "showTacticRowBackground": true,
+  "tacticRowBackground": "#dddddd",
+  "selectTechniquesAcrossTactics": true
+}

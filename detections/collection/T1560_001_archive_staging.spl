@@ -1,0 +1,24 @@
+```
+# ============================================================================
+# Detection: Archive Utility Invoked on Sensitive Directory (Staging for Exfil)
+# Detection ID: DE-CO-001
+# MITRE ATT&CK: T1560.001 - Archive Collected Data: Archive via Utility
+# Data Source: Sysmon EventCode=1
+# Severity: Medium
+# ============================================================================
+
+index=endpoint sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+Image IN ("*\\7z.exe","*\\WinRAR.exe","*\\rar.exe","*\\tar.exe")
+CommandLine IN ("*\\Finance*","*\\HR*","*\\Legal*","*password*","*-p*")
+| stats count min(_time) as first_seen values(CommandLine) as cmd by ComputerName, User, Image
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+```
+
+## Detection Logic
+Archive tools invoked against sensitive business-unit directories, especially with a password flag (common to evade DLP content inspection), indicate an attacker staging data for exfiltration.
+
+## False Positive Considerations
+IT staff performing legitimate backups or migrations. Restrict/tune the directory name list to your actual crown-jewel data locations and coordinate with data owners.
+
+## Tuning Notes
+Extend to flag archive file sizes >100MB written to temp/user-writable directories via FileCreate (EventCode 11) correlation for higher fidelity.

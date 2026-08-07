@@ -1,0 +1,24 @@
+```
+# ============================================================================
+# Detection: Suspicious Inbox Rule Created (Auto-Forward to External Domain)
+# Detection ID: DE-CO-002
+# MITRE ATT&CK: T1114.003 - Email Collection: Email Forwarding Rule
+# Data Source: O365/Exchange Admin Audit Log
+# Severity: High
+# ============================================================================
+
+index=o365 sourcetype="o365:management:activity" Operation="New-InboxRule" OR Operation="Set-InboxRule"
+| eval forward_to=coalesce(Parameters.ForwardTo, Parameters.RedirectTo)
+| where isnotnull(forward_to) AND NOT match(forward_to,"(?i)@yourcompany\\.com")
+| table _time, UserId, Operation, forward_to, Parameters.Name
+| sort -_time
+```
+
+## Detection Logic
+Attackers who compromise a mailbox commonly create a silent forwarding/redirect rule to an external address for persistent data collection, often surviving a password reset. This flags any new/modified rule that forwards to a non-corporate domain.
+
+## False Positive Considerations
+Legitimate use cases exist (assistants forwarding to personal devices, M&A transition mailboxes) — requires a lightweight approval workflow rather than blanket blocking.
+
+## Tuning Notes
+Enable this as a near-real-time (5-15 min) alert; forwarding rules are frequently used for BEC follow-on fraud, making time-to-detect critical.

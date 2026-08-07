@@ -1,0 +1,24 @@
+```
+# ============================================================================
+# Detection: Network/Host Discovery Sweep from Single Source
+# Detection ID: DE-DI-002
+# MITRE ATT&CK: T1018 - Remote System Discovery / T1046 - Network Service Discovery
+# Data Source: Firewall/NetFlow logs
+# Severity: Low
+# ============================================================================
+
+index=network sourcetype=firewall action=allowed
+| bucket _time span=5m
+| stats dc(dest_ip) as unique_hosts_contacted dc(dest_port) as unique_ports values(dest_port) as ports by src_ip, _time
+| where unique_hosts_contacted>=20 OR unique_ports>=15
+| sort -unique_hosts_contacted
+```
+
+## Detection Logic
+Flags a single internal source contacting an unusually high number of distinct internal hosts or ports in a tight window — consistent with nmap/masscan-style network sweeps or tools like SharpHound/BloodHound performing SMB/LDAP discovery against many endpoints.
+
+## False Positive Considerations
+Vulnerability scanners (Nessus/Qualys/Rapid7) and asset-management tools do this by design — allowlist their scanner service IPs, this is a mandatory exclusion for this detection to be usable.
+
+## Tuning Notes
+Feed to SOC dashboard as a contextual/enrichment panel; combine with T1087 discovery hits from the same host/user for a stronger recon-chain narrative.

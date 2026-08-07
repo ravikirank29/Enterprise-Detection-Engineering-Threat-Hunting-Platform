@@ -1,0 +1,31 @@
+```
+# ============================================================================
+# Detection: Office Application Spawning Suspicious Child Process (Phishing Payload Execution)
+# Detection ID: DE-IA-001
+# MITRE ATT&CK: T1566.001 - Phishing: Spearphishing Attachment / T1204.002 - User Execution: Malicious File
+# Data Source: Sysmon EventCode=1 (ProcessCreate)
+# Severity: High
+# ============================================================================
+
+index=endpoint sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+ParentImage IN ("*\\WINWORD.EXE","*\\EXCEL.EXE","*\\POWERPNT.EXE","*\\OUTLOOK.EXE","*\\MSACCESS.EXE")
+Image IN ("*\\cmd.exe","*\\powershell.exe","*\\wscript.exe","*\\cscript.exe","*\\mshta.exe","*\\rundll32.exe","*\\regsvr32.exe","*\\certutil.exe","*\\bitsadmin.exe")
+| eval risk_score=case(
+    match(CommandLine,"(?i)(downloadstring|invoke-expression|iex|-enc|frombase64)"), 90,
+    match(CommandLine,"(?i)(http|ftp)://"), 70,
+    true(), 50)
+| stats count min(_time) as first_seen values(CommandLine) as commands values(Image) as child_process
+    by ComputerName, User, ParentImage, ParentProcessId, risk_score
+| where risk_score>=50
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+| sort -risk_score
+```
+
+## Detection Logic
+Office and Outlook processes spawning script interpreters or LOLBins is a near-universal indicator of a malicious macro or embedded object executing its payload. Risk score weights command lines containing download cradles or encoded PowerShell higher.
+
+## False Positive Considerations
+Legitimate mail-merge macros, add-ins (e.g., DocuSign, Adobe plugins) can spawn helper processes. Validate against a documented list of approved macro-enabled workflows in the environment.
+
+## Tuning Notes
+Add a lookup of approved signed add-in binaries; consider raising risk_score threshold to 70 for auto-paging vs. 50 for triage queue only.

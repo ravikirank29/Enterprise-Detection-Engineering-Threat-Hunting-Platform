@@ -1,0 +1,124 @@
+{
+  "visualizations": {
+    "viz_critical_alerts_24h": {
+      "type": "splunk.singlevalue",
+      "dataSources": { "primary": "ds_critical_alerts" },
+      "options": {
+        "majorColor": "> table | seriesByIndex(0) | matchValue(mapAsHex(#DC4E41,#F1813F,#53A051), gte(0,50,100))",
+        "trendDisplayMode": "absolute",
+        "captionLabel": "Critical Alerts (24h)"
+      },
+      "title": "Critical Alerts — Last 24h"
+    },
+    "viz_mttr": {
+      "type": "splunk.singlevalue",
+      "dataSources": { "primary": "ds_mttr" },
+      "options": { "numberPrecision": 1, "unit": "min", "captionLabel": "Mean Time to Respond (7d avg)" },
+      "title": "MTTR (Minutes)"
+    },
+    "viz_detections_by_tactic": {
+      "type": "splunk.bar",
+      "dataSources": { "primary": "ds_hits_by_tactic" },
+      "options": {
+        "xAxisTitleText": "MITRE ATT&CK Tactic",
+        "yAxisTitleText": "Alert Count (7d)",
+        "legendDisplay": "off"
+      },
+      "title": "Alert Volume by MITRE Tactic — 7 Days"
+    },
+    "viz_top_detections": {
+      "type": "splunk.table",
+      "dataSources": { "primary": "ds_top_detections" },
+      "options": { "count": 10 },
+      "title": "Top 10 Firing Detections — 7 Days"
+    },
+    "viz_severity_trend": {
+      "type": "splunk.line",
+      "dataSources": { "primary": "ds_severity_trend" },
+      "options": { "xAxisTitleText": "Date", "yAxisTitleText": "Alert Count", "legendDisplay": "bottom" },
+      "title": "Alert Severity Trend — 30 Days"
+    },
+    "viz_coverage_gauge": {
+      "type": "splunk.gauge.radial",
+      "dataSources": { "primary": "ds_coverage_pct" },
+      "options": { "min": 0, "max": 100, "captionLabel": "ATT&CK Technique Coverage %" },
+      "title": "MITRE Coverage — Enterprise Matrix"
+    }
+  },
+  "dataSources": {
+    "ds_critical_alerts": {
+      "type": "ds.search",
+      "options": {
+        "query": "index=notable urgency=critical earliest=-24h | stats count",
+        "queryParameters": { "earliest": "-24h", "latest": "now" }
+      },
+      "name": "Critical Alerts 24h"
+    },
+    "ds_mttr": {
+      "type": "ds.search",
+      "options": {
+        "query": "index=notable earliest=-7d | eval resolve_minutes=(time_resolved-_time)/60 | stats avg(resolve_minutes) as mttr",
+        "queryParameters": { "earliest": "-7d", "latest": "now" }
+      },
+      "name": "MTTR 7 day"
+    },
+    "ds_hits_by_tactic": {
+      "type": "ds.search",
+      "options": {
+        "query": "index=notable earliest=-7d | lookup detection_mitre_lookup detection_id OUTPUT tactic | stats count by tactic | sort -count",
+        "queryParameters": { "earliest": "-7d", "latest": "now" }
+      },
+      "name": "Hits by Tactic"
+    },
+    "ds_top_detections": {
+      "type": "ds.search",
+      "options": {
+        "query": "index=notable earliest=-7d | stats count by detection_id, detection_name | sort -count | head 10",
+        "queryParameters": { "earliest": "-7d", "latest": "now" }
+      },
+      "name": "Top Detections"
+    },
+    "ds_severity_trend": {
+      "type": "ds.search",
+      "options": {
+        "query": "index=notable earliest=-30d | timechart span=1d count by urgency",
+        "queryParameters": { "earliest": "-30d", "latest": "now" }
+      },
+      "name": "Severity Trend"
+    },
+    "ds_coverage_pct": {
+      "type": "ds.search",
+      "options": {
+        "query": "| inputlookup detection_mitre_lookup | stats dc(technique_id) as covered | eval total_enterprise_techniques=201 | eval pct=round((covered/total_enterprise_techniques)*100,1) | fields pct",
+        "queryParameters": { "earliest": "0", "latest": "now" }
+      },
+      "name": "Coverage Percentage"
+    }
+  },
+  "defaults": {
+    "dataSources": {
+      "ds.search": { "options": { "queryParameters": { "latest": "now" } } }
+    }
+  },
+  "inputs": {
+    "input_global_time": {
+      "type": "input.timerange",
+      "options": { "token": "global_time", "defaultValue": "-24h,now" },
+      "title": "Time Range"
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "options": { "width": 1440, "height": 960 },
+    "structure": [
+      { "item": "viz_critical_alerts_24h", "type": "block", "position": { "x": 0, "y": 0, "w": 360, "h": 200 } },
+      { "item": "viz_mttr", "type": "block", "position": { "x": 360, "y": 0, "w": 360, "h": 200 } },
+      { "item": "viz_coverage_gauge", "type": "block", "position": { "x": 720, "y": 0, "w": 360, "h": 200 } },
+      { "item": "viz_detections_by_tactic", "type": "block", "position": { "x": 0, "y": 200, "w": 720, "h": 340 } },
+      { "item": "viz_top_detections", "type": "block", "position": { "x": 720, "y": 200, "w": 720, "h": 340 } },
+      { "item": "viz_severity_trend", "type": "block", "position": { "x": 0, "y": 540, "w": 1440, "h": 340 } }
+    ]
+  },
+  "description": "Executive-level security posture overview: critical alert volume, MTTR, MITRE ATT&CK coverage, and 30-day severity trending. Intended for weekly leadership review.",
+  "title": "SOC Executive Security Posture Dashboard"
+}

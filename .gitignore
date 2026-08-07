@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+enriched_report.json
+*.log
+.DS_Store

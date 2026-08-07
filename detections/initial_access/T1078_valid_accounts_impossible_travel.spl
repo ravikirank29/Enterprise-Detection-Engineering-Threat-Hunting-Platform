@@ -1,0 +1,31 @@
+```
+# ============================================================================
+# Detection: Impossible Travel Between Successive Logins
+# Detection ID: DE-IA-003
+# MITRE ATT&CK: T1078 - Valid Accounts
+# Data Source: Azure AD / Okta Sign-In Logs
+# Severity: High
+# ============================================================================
+
+index=auth sourcetype IN ("azure:aad:signin","okta:sso")
+| eval account=coalesce(UserPrincipalName, actor.alternateId)
+| sort 0 account, _time
+| streamstats current=f last(_time) as prev_time last(src_lat) as prev_lat last(src_lon) as prev_lon last(city) as prev_city by account
+| eval time_delta_hrs=round((_time-prev_time)/3600,2)
+| eval distance_km=round(acos(
+    sin(pi()*src_lat/180)*sin(pi()*prev_lat/180) +
+    cos(pi()*src_lat/180)*cos(pi()*prev_lat/180)*cos(pi()*prev_lon/180 - pi()*src_lon/180)
+  )*6371,1)
+| eval implied_speed_kmh=round(distance_km/time_delta_hrs,1)
+| where implied_speed_kmh>900 AND time_delta_hrs>0 AND distance_km>500
+| table _time, account, prev_city, city, distance_km, time_delta_hrs, implied_speed_kmh
+```
+
+## Detection Logic
+Calculates great-circle distance between geolocated successive logins for the same account and derives an implied travel speed. Speeds exceeding commercial aircraft cruise speed (~900 km/h) indicate credential compromise rather than legitimate travel.
+
+## False Positive Considerations
+VPN/proxy exit-node hopping and corporate mobile-device-management geolocation errors are the dominant false-positive source — cross-reference with known corporate VPN egress IP ranges lookup.
+
+## Tuning Notes
+Lower the threshold cautiously; frequent travelers and VPN split-tunnel users need a documented exception process rather than blanket suppression.

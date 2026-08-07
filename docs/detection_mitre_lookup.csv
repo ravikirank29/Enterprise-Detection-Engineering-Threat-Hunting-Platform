@@ -1,0 +1,24 @@
+detection_id,tactic,technique_id,severity
+DE-IA-001,Initial Access,T1566.001,High
+DE-IA-002,Initial Access,T1190,Critical
+DE-IA-003,Initial Access,T1078,High
+DE-EX-001,Execution,T1059.001,High
+DE-EX-002,Execution,T1047,Medium
+DE-PE-001,Persistence,T1547.001,Medium
+DE-PE-002,Persistence,T1053.005,Medium
+DE-PR-001,Privilege Escalation,T1055,Critical
+DE-PR-002,Privilege Escalation,T1548.002,High
+DE-DE-001,Defense Evasion,T1070.001,Critical
+DE-DE-002,Defense Evasion,T1562.001,Critical
+DE-CA-001,Credential Access,T1003.001,Critical
+DE-CA-002,Credential Access,T1552.001,Medium
+DE-CA-003,Credential Access,T1110.003,High
+DE-DI-001,Discovery,T1087,Low
+DE-DI-002,Discovery,T1018,Low
+DE-LM-001,Lateral Movement,T1021.002,High
+DE-LM-002,Lateral Movement,T1021.001,Medium
+DE-CO-001,Collection,T1560.001,Medium
+DE-CO-002,Collection,T1114.003,High
+DE-EF-001,Exfiltration,T1048.003,High
+DE-C2-001,Command and Control,T1071.001,High
+DE-IM-001,Impact,T1486,Critical

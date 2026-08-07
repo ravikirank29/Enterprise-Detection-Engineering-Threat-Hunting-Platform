@@ -1,0 +1,27 @@
+```
+# ============================================================================
+# Detection: Windows Event Log Cleared
+# Detection ID: DE-DE-001
+# MITRE ATT&CK: T1070.001 - Indicator Removal: Clear Windows Event Logs
+# Data Source: Windows Security 1102 / System 104
+# Severity: Critical
+# ============================================================================
+
+index=endpoint sourcetype="WinEventLog:Security" EventCode=1102
+| eval first_seen=strftime(_time,"%Y-%m-%d %H:%M:%S")
+| table first_seen, ComputerName, SubjectUserName, SubjectDomainName
+| append
+    [ search index=endpoint sourcetype="WinEventLog:System" EventCode=104
+      | eval first_seen=strftime(_time,"%Y-%m-%d %H:%M:%S")
+      | table first_seen, ComputerName, User_Name as SubjectUserName ]
+| sort -first_seen
+```
+
+## Detection Logic
+Event 1102 (Security log cleared) and 104 (any log cleared, System channel) are almost never legitimate outside of scoped log-rotation maintenance. This is one of the highest-fidelity indicators of an active intruder covering tracks post-compromise.
+
+## False Positive Considerations
+Log rotation scripts run by sanctioned automation accounts on a schedule — allowlist that single service account and alert on any other principal.
+
+## Tuning Notes
+This should be a Tier-1 immediate page, not a triage-queue alert, given near-zero false positive rate outside change-managed maintenance.

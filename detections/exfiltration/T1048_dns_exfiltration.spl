@@ -1,0 +1,27 @@
+```
+# ============================================================================
+# Detection: Anomalous DNS Query Volume/Entropy (Possible DNS Tunneling)
+# Detection ID: DE-EF-001
+# MITRE ATT&CK: T1048.003 - Exfiltration Over Alternative Protocol: DNS
+# Data Source: DNS query logs (Zeek/Sysmon 22)
+# Severity: High
+# ============================================================================
+
+index=network sourcetype IN ("dns","XmlWinEventLog:Microsoft-Windows-Sysmon/Operational") (EventCode=22 OR sourcetype="dns")
+| eval qlen=len(query)
+| eval subdomain=mvindex(split(query,"."),0)
+| eval entropy=round(((len(replace(subdomain,"(.)(?=.*\\1)","")) / len(subdomain))*100),2)
+| bucket _time span=1h
+| stats count avg(qlen) as avg_query_length dc(query) as unique_queries by src_ip, dest, _time
+| where avg_query_length>50 AND unique_queries>200
+| sort -unique_queries
+```
+
+## Detection Logic
+DNS tunneling tools (iodine, dnscat2, DNSExfiltrator) generate a high volume of long, high-entropy subdomains encoding exfiltrated data chunks. This search flags hosts with abnormal query-length and unique-query-count profiles against a given domain in an hour window.
+
+## False Positive Considerations
+CDN/security-vendor domains with legitimately high subdomain cardinality (e.g., telemetry endpoints) — maintain a domain allowlist and exclude before alerting.
+
+## Tuning Notes
+Consider adding Shannon entropy calculation via a custom command for more precise scoring; the simplified repeat-character heuristic here is a lightweight approximation suited to SPL-only environments.

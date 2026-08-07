@@ -1,0 +1,26 @@
+```
+# ============================================================================
+# Detection: Suspicious Scheduled Task Creation
+# Detection ID: DE-PE-002
+# MITRE ATT&CK: T1053.005 - Scheduled Task/Job: Scheduled Task
+# Data Source: Windows Security 4698 / Sysmon 1 (schtasks.exe)
+# Severity: Medium
+# ============================================================================
+
+index=endpoint sourcetype="WinEventLog:Security" EventCode=4698
+| rex field=TaskContent "(?i)<Command>(?P<task_command>[^<]+)</Command>"
+| rex field=TaskContent "(?i)<Arguments>(?P<task_args>[^<]+)</Arguments>"
+| where match(task_command,"(?i)(powershell|cmd|wscript|cscript|mshta|rundll32)") OR match(task_args,"(?i)(-enc|downloadstring|iex)")
+| stats count min(_time) as first_seen values(task_command) as cmd values(task_args) as args by ComputerName, SubjectUserName, TaskName
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+| sort -first_seen
+```
+
+## Detection Logic
+Scheduled task creation events (4698) include the full task XML; extracting the Command/Arguments elements lets us flag tasks that launch interpreters or contain download-and-execute patterns, a common persistence and defense-evasion technique.
+
+## False Positive Considerations
+Patch management and backup software create scheduled tasks that call PowerShell for legitimate purposes — allowlist by TaskName prefix (e.g., 'Microsoft\\Windows\\UpdateOrchestrator').
+
+## Tuning Notes
+Requires 'Audit Other Object Access Events' enabled in Advanced Audit Policy; verify GPO coverage.

@@ -1,0 +1,30 @@
+```
+# ============================================================================
+# Detection: New Autorun Registry Key or Startup Folder Entry
+# Detection ID: DE-PE-001
+# MITRE ATT&CK: T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder
+# Data Source: Sysmon EventCode=13 (RegistryEvent), EventCode=11 (FileCreate)
+# Severity: Medium
+# ============================================================================
+
+index=endpoint sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=13
+TargetObject IN ("*\\CurrentVersion\\Run*","*\\CurrentVersion\\RunOnce*")
+| stats count min(_time) as first_seen values(Details) as value_written by ComputerName, Image, TargetObject
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+| append
+    [ search index=endpoint sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=11
+      TargetFilename="*\\Start Menu\\Programs\\Startup\\*"
+      | stats count min(_time) as first_seen values(TargetFilename) as value_written by ComputerName, Image
+      | eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S"), TargetObject="StartupFolder" ]
+| table first_seen, ComputerName, Image, TargetObject, value_written, count
+| sort -first_seen
+```
+
+## Detection Logic
+Combines registry Run/RunOnce key writes with Startup folder file drops — the two most common persistence mechanisms for commodity malware and simple implants.
+
+## False Positive Considerations
+Legitimate software installers write Run keys during setup. Correlate with a recent-install window (MSI events) to suppress installer-driven noise.
+
+## Tuning Notes
+Add EventCode=12 (RegistryEvent create/delete) to also catch key deletion, useful for detecting cleanup by attackers post-persistence-validation.

@@ -1,0 +1,26 @@
+```
+# ============================================================================
+# Detection: Encoded or Obfuscated PowerShell Execution
+# Detection ID: DE-EX-001
+# MITRE ATT&CK: T1059.001 - Command and Scripting Interpreter: PowerShell
+# Data Source: Windows PowerShell Operational Log (4104) / Sysmon 1
+# Severity: High
+# ============================================================================
+
+index=endpoint sourcetype="WinEventLog:Microsoft-Windows-PowerShell/Operational" EventCode=4104
+| regex ScriptBlockText="(?i)(-enc|-e |frombase64string|invoke-expression|iex|downloadstring|net\.webclient|hidden|bypass|-nop|reflectiveload|invoke-mimikatz)"
+| eval obf_indicators=mvcount(split(replace(ScriptBlockText,"[^-]*(-enc|-e |frombase64string|invoke-expression|iex|downloadstring|hidden|bypass)","$1|"),"|"))-1
+| stats count min(_time) as first_seen values(ScriptBlockText) as script_snippets by ComputerName, UserID
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+| where count>0
+| sort -count
+```
+
+## Detection Logic
+PowerShell Script Block Logging (4104) captures the deobfuscated script content even when the attacker base64-encodes or obfuscates the command line, making this far more resilient than 4688/Sysmon-1 command-line matching alone.
+
+## False Positive Considerations
+Legitimate admin scripts and RMM tooling frequently use -EncodedCommand for whitespace-safe remoting. Baseline your RMM tool's known script hashes and exclude.
+
+## Tuning Notes
+Enable Script Block Logging + Module Logging org-wide via GPO; this detection is materially weaker without it.

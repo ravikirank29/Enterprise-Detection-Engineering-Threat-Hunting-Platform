@@ -1,0 +1,98 @@
+{
+  "visualizations": {
+    "viz_open_queue": {
+      "type": "splunk.table",
+      "dataSources": { "primary": "ds_open_notables" },
+      "options": {
+        "count": 25,
+        "columnFormat": {
+          "urgency": { "colorMode": "cellValue", "colors": { "critical": "#DC4E41", "high": "#F1813F", "medium": "#F8BE34", "low": "#53A051" } }
+        }
+      },
+      "title": "Open Alert Queue"
+    },
+    "viz_alerts_by_analyst": {
+      "type": "splunk.pie",
+      "dataSources": { "primary": "ds_by_analyst" },
+      "title": "Open Alerts by Assigned Analyst"
+    },
+    "viz_new_hosts_flagged": {
+      "type": "splunk.table",
+      "dataSources": { "primary": "ds_new_hosts" },
+      "title": "Hosts Newly Appearing in Alerts — 24h"
+    },
+    "viz_detection_health": {
+      "type": "splunk.table",
+      "dataSources": { "primary": "ds_detection_health" },
+      "options": {
+        "columnFormat": {
+          "status": { "colorMode": "cellValue", "colors": { "healthy": "#53A051", "noisy": "#F8BE34", "silent": "#DC4E41" } }
+        }
+      },
+      "title": "Detection Health Monitor (Noise / Silence Tracking)"
+    }
+  },
+  "dataSources": {
+    "ds_open_notables": {
+      "type": "ds.search",
+      "options": {
+        "query": "index=notable status!=closed | table _time, detection_id, detection_name, ComputerName, User, urgency, assigned_analyst | sort -_time",
+        "queryParameters": { "earliest": "-24h", "latest": "now" }
+      },
+      "name": "Open Notables"
+    },
+    "ds_by_analyst": {
+      "type": "ds.search",
+      "options": {
+        "query": "index=notable status!=closed | stats count by assigned_analyst",
+        "queryParameters": { "earliest": "-24h", "latest": "now" }
+      },
+      "name": "Alerts by Analyst"
+    },
+    "ds_new_hosts": {
+      "type": "ds.search",
+      "options": {
+        "query": "index=notable earliest=-24h | stats earliest(_time) as first_alert by ComputerName | where first_alert > relative_time(now(),\"-24h\") | eval first_alert=strftime(first_alert,\"%Y-%m-%d %H:%M\") | sort -first_alert",
+        "queryParameters": { "earliest": "-24h", "latest": "now" }
+      },
+      "name": "New Hosts 24h"
+    },
+    "ds_detection_health": {
+      "type": "ds.search",
+      "options": {
+        "query": "index=notable earliest=-7d | stats count as fire_count dc(date_mday) as days_fired by detection_id | eval status=case(fire_count>200,\"noisy\", fire_count==0,\"silent\", true(),\"healthy\") | sort detection_id",
+        "queryParameters": { "earliest": "-7d", "latest": "now" }
+      },
+      "name": "Detection Health"
+    }
+  },
+  "inputs": {
+    "input_severity_filter": {
+      "type": "input.dropdown",
+      "options": {
+        "token": "severity_filter",
+        "defaultValue": "*",
+        "items": [
+          { "label": "All Severities", "value": "*" },
+          { "label": "Critical", "value": "critical" },
+          { "label": "High", "value": "high" },
+          { "label": "Medium", "value": "medium" },
+          { "label": "Low", "value": "low" }
+        ]
+      },
+      "title": "Severity Filter"
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "options": { "width": 1440, "height": 900 },
+    "structure": [
+      { "item": "viz_open_queue", "type": "block", "position": { "x": 0, "y": 0, "w": 960, "h": 420 } },
+      { "item": "viz_alerts_by_analyst", "type": "block", "position": { "x": 960, "y": 0, "w": 480, "h": 420 } },
+      { "item": "viz_new_hosts_flagged", "type": "block", "position": { "x": 0, "y": 420, "w": 720, "h": 300 } },
+      { "item": "viz_detection_health", "type": "block", "position": { "x": 720, "y": 420, "w": 720, "h": 300 } }
+    ]
+  },
+  "description": "Real-time Tier-1/Tier-2 triage workspace: open alert queue, analyst workload distribution, newly-appearing hosts, and a detection health monitor to catch noisy or silently-failing detections before they erode trust in the program.",
+  "title": "SOC Analyst Tactical Triage Dashboard"
+}
