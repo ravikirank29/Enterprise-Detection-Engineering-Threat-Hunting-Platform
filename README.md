@@ -46,7 +46,6 @@ detection engineering function owns:
 
 The architecture shows the end-to-end flow from endpoint, identity, and network telemetry through Splunk ingestion and detection engineering, into alert triage, automation, dashboards, and incident response.
 
-
 ## Example Detection
 
 `detections/credential_access/T1003_001_lsass_memory_access.spl` — flags processes requesting
