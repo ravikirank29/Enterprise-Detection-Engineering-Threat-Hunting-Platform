@@ -39,11 +39,10 @@ detection engineering function owns:
 | Medium | 6 |
 | Low | 2 |
 
-## Architecture
 
 ## Architecture
 
-![Enterprise Detection Engineering & Threat Hunting Platform](./architecture/screenshots/architecture.png)
+![Enterprise Detection Engineering & Threat Hunting Platform](./architecture/architecture.png)
 
 The architecture shows the end-to-end flow from endpoint, identity, and network telemetry through Splunk ingestion and detection engineering, into alert triage, automation, dashboards, and incident response.
 
