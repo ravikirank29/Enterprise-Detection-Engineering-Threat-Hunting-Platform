@@ -41,9 +41,8 @@ detection engineering function owns:
 
 ## Architecture
 
-![Architecture diagram](./architecture/screenshots/architecture_diagram.png)
+![Enterprise Detection Engineering & Threat Hunting Platform](./architecture/architecture.png)
 
-Full breakdown and design rationale in [`architecture/architecture.md`](./architecture/architecture.md).
 
 ## Example Detection
 
