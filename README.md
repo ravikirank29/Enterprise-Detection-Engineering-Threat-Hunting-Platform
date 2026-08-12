@@ -41,7 +41,7 @@ detection engineering function owns:
 
 ## Architecture
 
-![Enterprise Detection Engineering & Threat Hunting Platform](./architecture/architecture.png)
+![Enterprise Detection Engineering & Threat Hunting Platform](./architecture/screenshots/architecture.png)
 
 
 ## Example Detection
