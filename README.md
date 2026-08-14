@@ -132,11 +132,6 @@ Import the `.json` files in `/dashboards` via **Splunk → Dashboards → Create
 6. Configure API keys as environment variables (`ABUSEIPDB_API_KEY`, `VT_API_KEY`, `OTX_API_KEY`) to use
    `scripts/ioc_enrichment.py`.
 
-## Roadmap
-
-See "Coverage Gaps" in [`docs/mitre_attack_mapping.md`](./docs/mitre_attack_mapping.md) for what's
-deliberately out of scope in this phase (cloud control-plane detections, container/K8s techniques, UEBA
-baselining) and planned for future iterations.
 
 # 👨‍💻 Author
 
