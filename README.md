@@ -138,8 +138,35 @@ See "Coverage Gaps" in [`docs/mitre_attack_mapping.md`](./docs/mitre_attack_mapp
 deliberately out of scope in this phase (cloud control-plane detections, container/K8s techniques, UEBA
 baselining) and planned for future iterations.
 
-## Author
+# 👨‍💻 Author
 
-Built as a hands-on portfolio project to demonstrate practical SOC analyst / detection engineering
-capability: SPL query writing, MITRE ATT&CK-driven detection design, dashboard development, security
-automation in Python, and incident response process design.
+**Ravi Kiran Kambhampati**
+
+Cybersecurity & Cloud Operations Graduate
+
+- Detection Engineering
+- SOC Operations
+- Splunk
+- Python Automation
+- Threat Intelligence
+- AWS
+
+GitHub: [ravikirank29](https://github.com/ravikirank29)
+
+LinkedIn: [Ravi Kiran Kambhampati](https://www.linkedin.com/in/ravi-kiran-kambhampati/)
+
+---
+
+# 🤝 Contributing
+
+Contributions, suggestions, and feedback are welcome. Feel free to open an issue or submit a pull request if you have ideas for improving this project.
+
+---
+
+# 📄 License
+
+This project is licensed under the MIT License. See the `LICENSE` file for additional information.
+
+---
+
+## ⭐ If you found this project useful, consider giving it a star!
